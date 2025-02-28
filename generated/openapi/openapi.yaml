@@ -1,4 +1,4 @@
-openapi: 3.1.1
+openapi: 3.0.0
 info:
   contact:
     email: ops@senvo.de
@@ -100,6 +100,7 @@ components:
       required:
       - destination
       - weight
+      type: object
       xml:
         name: shippingRequest
     Address:
@@ -133,6 +134,7 @@ components:
       required:
       - country
       - postalCode
+      type: object
       xml:
         name: address
     Dimensions:
@@ -140,6 +142,7 @@ components:
         length: 30.5
         width: 20.0
         height: 15.0
+      nullable: true
       properties:
         length:
           description: Length in centimeters
@@ -156,9 +159,9 @@ components:
           example: 15.0
           format: float
           type: number
+      type: object
       xml:
         name: dimensions
-      nullable: true
     CostEstimate:
       example:
         charges:
@@ -193,6 +196,7 @@ components:
       required:
       - charges
       - totalCost
+      type: object
       xml:
         name: costEstimate
     Charge:
@@ -224,6 +228,7 @@ components:
       required:
       - amount
       - type
+      type: object
       xml:
         name: charge
     Error:
@@ -253,6 +258,7 @@ components:
       required:
       - code
       - message
+      type: object
       xml:
         name: error
     Error_details_inner:
@@ -263,6 +269,7 @@ components:
         message:
           description: Error message for this field
           type: string
+      type: object
   securitySchemes:
     apiKey:
       description: API key for authentication - Must be generated from the users profile

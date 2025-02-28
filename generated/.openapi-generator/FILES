@@ -1,9 +1,2 @@
-Apis/ShippingApi.md
-Models/Address.md
-Models/Charge.md
-Models/CostEstimate.md
-Models/Dimensions.md
-Models/Error.md
-Models/Error_details_inner.md
-Models/ShippingRequest.md
 README.md
+openapi/openapi.yaml

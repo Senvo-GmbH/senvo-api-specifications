@@ -1,4 +1,4 @@
-openapi: 3.1.1
+openapi: 3.0.0
 info:
   title: Senvo API Specifications
   description: This document is used to create contract specifications, which might be used in the future to create new features and services.
