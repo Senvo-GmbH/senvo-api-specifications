@@ -21,7 +21,7 @@ paths:
       description: Calculates projected shipping costs based on destination, weight, and optional dimensions
       operationId: estimateShippingCost
       tags:
-        - shipping
+        - Cost Estimation
       security:
         - apiKey: []
       requestBody:
