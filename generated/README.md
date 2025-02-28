@@ -29,6 +29,13 @@ All URIs are relative to *https://senvo.de/api/v1*
 ### apiKey
 
 - **Type**: API key
-- **API key parameter name**: X-API-Key
+- **API key parameter name**: x-api-key
+- **Location**: HTTP header
+
+<a name="apiKeyID"></a>
+### apiKeyID
+
+- **Type**: API key
+- **API key parameter name**: x-api-key-id
 - **Location**: HTTP header
 
