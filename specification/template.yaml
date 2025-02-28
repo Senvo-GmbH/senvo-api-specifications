@@ -1,0 +1,245 @@
+openapi: 3.1.1
+info:
+  title: Senvo API Specifications
+  description: This document is used to create contract specifications, which might be used in the future to create new features and services.
+  version: 1.0.0
+  contact:
+    name: Senvo Engineering
+    email: ops@senvo.de
+    url: https://senvo.de/contact
+
+servers:
+  - url: https://senvo.de/api/v1
+    description: Production Server
+  - url: https://dev.senvo.dev/api/v1
+    description: Development Server
+
+paths:
+  /estimate-shipping-cost:
+    post:
+      summary: Estimate Shipping Cost
+      description: Calculates projected shipping costs based on destination, weight, and optional dimensions
+      operationId: estimateShippingCost
+      tags:
+        - shipping
+      security:
+        - apiKey: []
+      requestBody:
+        description: Package shipping details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ShippingRequest'
+      responses:
+        '200':
+          description: Shipping cost estimate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostEstimate'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/CostEstimate'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ShippingRequest:
+      type: object
+      required:
+        - destination
+        - weight
+      properties:
+        destination:
+          $ref: '#/components/schemas/Address'
+        weight:
+          type: number
+          format: float
+          description: Weight of the package in kilograms
+          example: 5.2
+          minimum: 0.01
+        dimensions:
+          $ref: '#/components/schemas/Dimensions'
+      xml:
+        name: shippingRequest
+
+    Address:
+      type: object
+      required:
+        - country
+        - postalCode
+      properties:
+        street:
+          type: string
+          description: Street address
+          example: "123 Main Street"
+        city:
+          type: string
+          description: City
+          example: "Berlin"
+        state:
+          type: string
+          description: State or province
+          example: "Brandenburg"
+        postalCode:
+          type: string
+          description: Postal code (PLZ)
+          example: "10115"
+        country:
+          type: string
+          description: Country code (ISO 3166-1 alpha-2)
+          example: "DE"
+      xml:
+        name: address
+
+    Dimensions:
+      type: object
+      nullable: true
+      properties:
+        length:
+          type: number
+          format: float
+          description: Length in centimeters
+          example: 30.5
+        width:
+          type: number
+          format: float
+          description: Width in centimeters
+          example: 20.0
+        height:
+          type: number
+          format: float
+          description: Height in centimeters
+          example: 15.0
+      xml:
+        name: dimensions
+
+    CostEstimate:
+      type: object
+      required:
+        - totalCost
+        - charges
+      properties:
+        totalCost:
+          type: number
+          format: float
+          description: Total estimated shipping cost
+          example: 24.99
+        currency:
+          type: string
+          description: Currency code (ISO 4217)
+          example: "EUR"
+        charges:
+          type: array
+          description: Breakdown of individual charges
+          items:
+            $ref: '#/components/schemas/Charge'
+        estimatedDeliveryDays:
+          type: integer
+          description: Estimated delivery time in days
+          example: 3
+      xml:
+        name: costEstimate
+
+    Charge:
+      type: object
+      required:
+        - type
+        - amount
+      properties:
+        type:
+          type: string
+          description: Type of charge
+          enum:
+            - freight
+            - oversizeSurcharge
+            - remoteAreaSurcharge
+            - fuelSurcharge
+            - insuranceFee
+            - other
+          example: "freight"
+        description:
+          type: string
+          description: Human-readable description of the charge
+          example: "Base shipping rate for package weight"
+        amount:
+          type: number
+          format: float
+          description: Amount of the charge
+          example: 15.50
+      xml:
+        name: charge
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_REQUEST"
+        message:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        details:
+          type: array
+          description: Detailed error information
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+              message:
+                type: string
+                description: Error message for this field
+          example:
+            - field: "weight"
+              message: "Weight must be greater than zero"
+      xml:
+        name: error
+
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: x-api-key
+      in: header
+      description: API key for authentication - Must be generated from the users profile on senvo.de
+    apiKeyID:
+      type: apiKey
+      name: x-api-key-id
+      in: header
+      description: API key ID for authentication - Must be generated from the users profile on senvo.de

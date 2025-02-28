@@ -1,0 +1,297 @@
+{
+  "openapi" : "3.1.1",
+  "info" : {
+    "contact" : {
+      "email" : "ops@senvo.de",
+      "name" : "Senvo Engineering",
+      "url" : "https://senvo.de/contact"
+    },
+    "description" : "This document is used to create contract specifications, which might be used in the future to create new features and services.",
+    "title" : "Senvo API Specifications",
+    "version" : "1.0.0"
+  },
+  "servers" : [ {
+    "description" : "Production Server",
+    "url" : "https://senvo.de/api/v1"
+  } ],
+  "paths" : {
+    "/estimate-shipping-cost" : {
+      "post" : {
+        "description" : "Calculates projected shipping costs based on destination, weight, and optional dimensions",
+        "operationId" : "estimateShippingCost",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ShippingRequest"
+              }
+            },
+            "application/xml" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ShippingRequest"
+              }
+            }
+          },
+          "description" : "Package shipping details",
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CostEstimate"
+                }
+              },
+              "application/xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CostEstimate"
+                }
+              }
+            },
+            "description" : "Shipping cost estimate"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              },
+              "application/xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              }
+            },
+            "description" : "Bad request"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              },
+              "application/xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              }
+            },
+            "description" : "Unauthorized"
+          },
+          "422" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              },
+              "application/xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Error"
+                }
+              }
+            },
+            "description" : "Validation error"
+          }
+        },
+        "security" : [ {
+          "apiKey" : [ ]
+        } ],
+        "summary" : "Estimate Shipping Cost",
+        "tags" : [ "shipping" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "ShippingRequest" : {
+        "properties" : {
+          "destination" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "weight" : {
+            "description" : "Weight of the package in kilograms",
+            "example" : 5.2,
+            "format" : "float",
+            "minimum" : 0.01,
+            "type" : "number"
+          },
+          "dimensions" : {
+            "$ref" : "#/components/schemas/Dimensions"
+          }
+        },
+        "required" : [ "destination", "weight" ],
+        "xml" : {
+          "name" : "shippingRequest"
+        }
+      },
+      "Address" : {
+        "properties" : {
+          "street" : {
+            "description" : "Street address",
+            "example" : "123 Main Street",
+            "type" : "string"
+          },
+          "city" : {
+            "description" : "City",
+            "example" : "Berlin",
+            "type" : "string"
+          },
+          "state" : {
+            "description" : "State or province",
+            "example" : "Brandenburg",
+            "type" : "string"
+          },
+          "postalCode" : {
+            "description" : "Postal code (PLZ)",
+            "example" : "10115",
+            "type" : "string"
+          },
+          "country" : {
+            "description" : "Country code (ISO 3166-1 alpha-2)",
+            "example" : "DE",
+            "type" : "string"
+          }
+        },
+        "required" : [ "country", "postalCode" ],
+        "xml" : {
+          "name" : "address"
+        }
+      },
+      "Dimensions" : {
+        "properties" : {
+          "length" : {
+            "description" : "Length in centimeters",
+            "example" : 30.5,
+            "format" : "float",
+            "type" : "number"
+          },
+          "width" : {
+            "description" : "Width in centimeters",
+            "example" : 20.0,
+            "format" : "float",
+            "type" : "number"
+          },
+          "height" : {
+            "description" : "Height in centimeters",
+            "example" : 15.0,
+            "format" : "float",
+            "type" : "number"
+          }
+        },
+        "xml" : {
+          "name" : "dimensions"
+        },
+        "nullable" : true
+      },
+      "CostEstimate" : {
+        "properties" : {
+          "totalCost" : {
+            "description" : "Total estimated shipping cost",
+            "example" : 24.99,
+            "format" : "float",
+            "type" : "number"
+          },
+          "currency" : {
+            "description" : "Currency code (ISO 4217)",
+            "example" : "EUR",
+            "type" : "string"
+          },
+          "charges" : {
+            "description" : "Breakdown of individual charges",
+            "items" : {
+              "$ref" : "#/components/schemas/Charge"
+            },
+            "type" : "array"
+          },
+          "estimatedDeliveryDays" : {
+            "description" : "Estimated delivery time in days",
+            "example" : 3,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "charges", "totalCost" ],
+        "xml" : {
+          "name" : "costEstimate"
+        }
+      },
+      "Charge" : {
+        "properties" : {
+          "type" : {
+            "description" : "Type of charge",
+            "enum" : [ "freight", "oversizeSurcharge", "remoteAreaSurcharge", "fuelSurcharge", "insuranceFee", "other" ],
+            "example" : "freight",
+            "type" : "string"
+          },
+          "description" : {
+            "description" : "Human-readable description of the charge",
+            "example" : "Base shipping rate for package weight",
+            "type" : "string"
+          },
+          "amount" : {
+            "description" : "Amount of the charge",
+            "example" : 15.5,
+            "format" : "float",
+            "type" : "number"
+          }
+        },
+        "required" : [ "amount", "type" ],
+        "xml" : {
+          "name" : "charge"
+        }
+      },
+      "Error" : {
+        "properties" : {
+          "code" : {
+            "description" : "Error code",
+            "example" : "INVALID_REQUEST",
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Error message",
+            "example" : "Invalid request parameters",
+            "type" : "string"
+          },
+          "details" : {
+            "description" : "Detailed error information",
+            "example" : [ {
+              "field" : "weight",
+              "message" : "Weight must be greater than zero"
+            } ],
+            "items" : {
+              "$ref" : "#/components/schemas/Error_details_inner"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "code", "message" ],
+        "xml" : {
+          "name" : "error"
+        }
+      },
+      "Error_details_inner" : {
+        "properties" : {
+          "field" : {
+            "description" : "Field that caused the error",
+            "type" : "string"
+          },
+          "message" : {
+            "description" : "Error message for this field",
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "apiKey" : {
+        "description" : "API key for authentication",
+        "in" : "header",
+        "name" : "X-API-Key",
+        "type" : "apiKey"
+      }
+    }
+  }
+}
