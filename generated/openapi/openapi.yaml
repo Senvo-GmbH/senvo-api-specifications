@@ -75,6 +75,9 @@ components:
   schemas:
     ShippingRequest:
       example:
+        deliveryService:
+          carrier: DPD
+          product: Standard
         destination:
           country: DE
           city: Berlin
@@ -97,7 +100,10 @@ components:
           type: number
         dimensions:
           $ref: '#/components/schemas/Dimensions'
+        deliveryService:
+          $ref: '#/components/schemas/DeliveryService'
       required:
+      - deliveryService
       - destination
       - weight
       type: object
@@ -162,18 +168,48 @@ components:
       type: object
       xml:
         name: dimensions
+    DeliveryService:
+      example:
+        carrier: DPD
+        product: Standard
+      properties:
+        carrier:
+          description: Shipping carrier name
+          enum:
+          - UPS
+          - Fedex
+          - DPD
+          example: DPD
+          type: string
+        product:
+          description: Shipping service type
+          enum:
+          - Standard
+          - Express
+          - Worldwide
+          example: Standard
+          type: string
+      type: object
+      xml:
+        name: deliveryService
     CostEstimate:
       example:
-        charges:
-        - amount: 15.5
-          description: Base shipping rate for package weight
-          type: freight
-        - amount: 15.5
-          description: Base shipping rate for package weight
-          type: freight
-        estimatedDeliveryDays: 3
-        currency: EUR
         totalCost: 24.99
+        currency: EUR
+        charges:
+        - type: freight
+          description: Base shipping rate for package weight
+          cost: 15.5
+        - type: fuelSurcharge
+          description: Fuel surcharge
+          cost: 4.99
+        - type: remoteAreaSurcharge
+          description: Remote area delivery fee
+          cost: 4.5
+        estimatedDeliveryDays: 3
+        delivery_service:
+          carrier: DPD
+          product: Standard
       properties:
         totalCost:
           description: Total estimated shipping cost
@@ -186,6 +222,16 @@ components:
           type: string
         charges:
           description: Breakdown of individual charges
+          example:
+          - type: freight
+            description: Base shipping rate for package weight
+            cost: 15.5
+          - type: fuelSurcharge
+            description: Fuel surcharge
+            cost: 4.99
+          - type: remoteAreaSurcharge
+            description: Remote area delivery fee
+            cost: 4.5
           items:
             $ref: '#/components/schemas/Charge'
           type: array
@@ -193,6 +239,8 @@ components:
           description: Estimated delivery time in days
           example: 3
           type: integer
+        delivery_service:
+          $ref: '#/components/schemas/DeliveryService'
       required:
       - charges
       - totalCost
@@ -200,10 +248,6 @@ components:
       xml:
         name: costEstimate
     Charge:
-      example:
-        amount: 15.5
-        description: Base shipping rate for package weight
-        type: freight
       properties:
         type:
           description: Type of charge
@@ -220,13 +264,13 @@ components:
           description: Human-readable description of the charge
           example: Base shipping rate for package weight
           type: string
-        amount:
+        cost:
           description: Amount of the charge
           example: 15.5
           format: float
           type: number
       required:
-      - amount
+      - cost
       - type
       type: object
       xml:

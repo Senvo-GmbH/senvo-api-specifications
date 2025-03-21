@@ -1,5 +1,5 @@
 {
-  "openapi" : "3.1.1",
+  "openapi" : "3.0.0",
   "info" : {
     "contact" : {
       "email" : "ops@senvo.de",
@@ -13,6 +13,9 @@
   "servers" : [ {
     "description" : "Production Server",
     "url" : "https://senvo.de/api/v1"
+  }, {
+    "description" : "Development Server",
+    "url" : "https://dev.senvo.dev/api/v1"
   } ],
   "paths" : {
     "/estimate-shipping-cost" : {
@@ -101,7 +104,7 @@
           "apiKey" : [ ]
         } ],
         "summary" : "Estimate Shipping Cost",
-        "tags" : [ "shipping" ]
+        "tags" : [ "Cost Estimation" ]
       }
     }
   },
@@ -121,9 +124,13 @@
           },
           "dimensions" : {
             "$ref" : "#/components/schemas/Dimensions"
+          },
+          "deliveryService" : {
+            "$ref" : "#/components/schemas/DeliveryService"
           }
         },
-        "required" : [ "destination", "weight" ],
+        "required" : [ "deliveryService", "destination", "weight" ],
+        "type" : "object",
         "xml" : {
           "name" : "shippingRequest"
         }
@@ -157,11 +164,13 @@
           }
         },
         "required" : [ "country", "postalCode" ],
+        "type" : "object",
         "xml" : {
           "name" : "address"
         }
       },
       "Dimensions" : {
+        "nullable" : true,
         "properties" : {
           "length" : {
             "description" : "Length in centimeters",
@@ -182,12 +191,54 @@
             "type" : "number"
           }
         },
+        "type" : "object",
         "xml" : {
           "name" : "dimensions"
+        }
+      },
+      "DeliveryService" : {
+        "properties" : {
+          "carrier" : {
+            "description" : "Shipping carrier name",
+            "enum" : [ "UPS", "Fedex", "DPD" ],
+            "example" : "DPD",
+            "type" : "string"
+          },
+          "product" : {
+            "description" : "Shipping service type",
+            "enum" : [ "Standard", "Express", "Worldwide" ],
+            "example" : "Standard",
+            "type" : "string"
+          }
         },
-        "nullable" : true
+        "type" : "object",
+        "xml" : {
+          "name" : "deliveryService"
+        }
       },
       "CostEstimate" : {
+        "example" : {
+          "totalCost" : 24.99,
+          "currency" : "EUR",
+          "charges" : [ {
+            "type" : "freight",
+            "description" : "Base shipping rate for package weight",
+            "cost" : 15.5
+          }, {
+            "type" : "fuelSurcharge",
+            "description" : "Fuel surcharge",
+            "cost" : 4.99
+          }, {
+            "type" : "remoteAreaSurcharge",
+            "description" : "Remote area delivery fee",
+            "cost" : 4.5
+          } ],
+          "estimatedDeliveryDays" : 3,
+          "delivery_service" : {
+            "carrier" : "DPD",
+            "product" : "Standard"
+          }
+        },
         "properties" : {
           "totalCost" : {
             "description" : "Total estimated shipping cost",
@@ -202,6 +253,19 @@
           },
           "charges" : {
             "description" : "Breakdown of individual charges",
+            "example" : [ {
+              "type" : "freight",
+              "description" : "Base shipping rate for package weight",
+              "cost" : 15.5
+            }, {
+              "type" : "fuelSurcharge",
+              "description" : "Fuel surcharge",
+              "cost" : 4.99
+            }, {
+              "type" : "remoteAreaSurcharge",
+              "description" : "Remote area delivery fee",
+              "cost" : 4.5
+            } ],
             "items" : {
               "$ref" : "#/components/schemas/Charge"
             },
@@ -211,9 +275,13 @@
             "description" : "Estimated delivery time in days",
             "example" : 3,
             "type" : "integer"
+          },
+          "delivery_service" : {
+            "$ref" : "#/components/schemas/DeliveryService"
           }
         },
         "required" : [ "charges", "totalCost" ],
+        "type" : "object",
         "xml" : {
           "name" : "costEstimate"
         }
@@ -231,14 +299,15 @@
             "example" : "Base shipping rate for package weight",
             "type" : "string"
           },
-          "amount" : {
+          "cost" : {
             "description" : "Amount of the charge",
             "example" : 15.5,
             "format" : "float",
             "type" : "number"
           }
         },
-        "required" : [ "amount", "type" ],
+        "required" : [ "cost", "type" ],
+        "type" : "object",
         "xml" : {
           "name" : "charge"
         }
@@ -268,6 +337,7 @@
           }
         },
         "required" : [ "code", "message" ],
+        "type" : "object",
         "xml" : {
           "name" : "error"
         }
@@ -282,14 +352,21 @@
             "description" : "Error message for this field",
             "type" : "string"
           }
-        }
+        },
+        "type" : "object"
       }
     },
     "securitySchemes" : {
       "apiKey" : {
-        "description" : "API key for authentication",
+        "description" : "API key for authentication - Must be generated from the users profile on senvo.de",
         "in" : "header",
-        "name" : "X-API-Key",
+        "name" : "x-api-key",
+        "type" : "apiKey"
+      },
+      "apiKeyID" : {
+        "description" : "API key ID for authentication - Must be generated from the users profile on senvo.de",
+        "in" : "header",
+        "name" : "x-api-key-id",
         "type" : "apiKey"
       }
     }

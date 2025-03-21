@@ -79,6 +79,7 @@ components:
       required:
         - destination
         - weight
+        - deliveryService
       properties:
         destination:
           $ref: '#/components/schemas/Address'
@@ -90,9 +91,10 @@ components:
           minimum: 0.01
         dimensions:
           $ref: '#/components/schemas/Dimensions'
+        deliveryService:
+          $ref: '#/components/schemas/DeliveryService'
       xml:
         name: shippingRequest
-
     Address:
       type: object
       required:
@@ -144,6 +146,28 @@ components:
       xml:
         name: dimensions
 
+    DeliveryService:
+      type: object
+      properties:
+        carrier:
+          type: string
+          description: Shipping carrier name
+          example: "DPD"
+          enum:
+            - UPS
+            - Fedex
+            - DPD
+        product:
+          type: string
+          description: Shipping service type
+          example: "Standard"
+          enum:
+            - Standard
+            - Express
+            - Worldwide
+      xml:
+        name: deliveryService
+
     CostEstimate:
       type: object
       required:
@@ -164,18 +188,48 @@ components:
           description: Breakdown of individual charges
           items:
             $ref: '#/components/schemas/Charge'
+          example:
+            - type: "freight"
+              description: "Base shipping rate for package weight"
+              cost: 15.50
+            - type: "fuelSurcharge"
+              description: "Fuel surcharge"
+              cost: 4.99
+            - type: "remoteAreaSurcharge"
+              description: "Remote area delivery fee"
+              cost: 4.50
         estimatedDeliveryDays:
           type: integer
           description: Estimated delivery time in days
           example: 3
+        delivery_service:
+          $ref: '#/components/schemas/DeliveryService'
+          description: The selected delivery service details
       xml:
         name: costEstimate
+      example:
+        totalCost: 24.99
+        currency: "EUR"
+        charges:
+          - type: "freight"
+            description: "Base shipping rate for package weight"
+            cost: 15.50
+          - type: "fuelSurcharge"
+            description: "Fuel surcharge"
+            cost: 4.99
+          - type: "remoteAreaSurcharge"
+            description: "Remote area delivery fee"
+            cost: 4.50
+        estimatedDeliveryDays: 3
+        delivery_service:
+          carrier: "DPD"
+          product: "Standard"
 
     Charge:
       type: object
       required:
         - type
-        - amount
+        - cost
       properties:
         type:
           type: string
@@ -192,7 +246,7 @@ components:
           type: string
           description: Human-readable description of the charge
           example: "Base shipping rate for package weight"
-        amount:
+        cost:
           type: number
           format: float
           description: Amount of the charge
